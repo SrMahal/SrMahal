@@ -4,7 +4,7 @@
 </h1>
 
 ### :hammer_and_wrench: Languages and Tools :
-<img src="https://skillicons.dev/icons?i=html,css,javascript,php,mysql,gitpython," width={100}/><br>
+<img src="https://skillicons.dev/icons?i=html,css,javascript,php,mysql,gitpython,docker" width={100}/><br>
 
 <img alt="meus stuatus" align="left" width="47%" src="https://github-readme-stats.vercel.app/api?username=SrMahal"/>
 
