@@ -18,7 +18,7 @@ White hat, mas sem bater palma.
 
 
 ### :hammer_and_wrench: Languages and Tools :
-<img src="https://skillicons.dev/icons?i=javascript,html,css,php,mysql,python,docker,linux" width={100}/><br>
+<img src="https://skillicons.dev/icons?i=javascript,html,css,php,python,mysql,docker,linux" width={100}/><br>
 
 <img alt="meus stuatus" align="left" width="47%" src="https://github-readme-stats.vercel.app/api?username=SrMahal"/>
 
