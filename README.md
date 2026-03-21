@@ -5,7 +5,7 @@
 
 <p>
 Full Stack Dev · Tech Founder<br>
-Criando @sonharai, @studiomahal e @um_seguidor_um_ponto enquanto
+Criando @sonharai, @studiomahal e @um_seguidor_um_ponto enquanto </br>
 o mundo discute se Windows 12 finalmente vai respeitar o terminal.
 </p>
 
