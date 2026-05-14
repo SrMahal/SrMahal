@@ -17,7 +17,3 @@ o mundo discute se Windows 12 finalmente vai respeitar o terminal.
 </p>
 ### :hammer_and_wrench: Languages and Tools :
 <img src="https://skillicons.dev/icons?i=javascript,html,css,php,python,mysql,docker,linux" width={100}/><br>
-
-<img alt="meus stuatus" align="left" width="47%" src="https://github-readme-stats.vercel.app/api?username=SrMahal"/>
-
-<img alt="Top linguas" align="left" width="47%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=SrMahal&layout=compact"/>
