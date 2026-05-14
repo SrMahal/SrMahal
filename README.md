@@ -4,19 +4,17 @@
 </h1>
 
 <p>
-Full Stack Dev · Tech Founder<br>
-Criando @sonharai, @studiomahal e @um_seguidor_um_ponto enquanto </br>
-o mundo discute se Windows 12 finalmente vai respeitar o terminal.
-</p>
-
-<p>
 VPS, Docker e automações.<br>
-Não faço força bruta — faço força lógica.<br>
+Não faço força bruta, faço força lógica.<br>
 Porta aberta não é invasão, é convite mal configurado.<br>
 White hat, mas sem bater palma.
 </p>
 
-
+<p>
+Full Stack Dev · Tech Founder<br>
+Criando @sonharai, @studiomahal e @um_seguidor_um_ponto enquanto </br>
+o mundo discute se Windows 12 finalmente vai respeitar o terminal.
+</p>
 ### :hammer_and_wrench: Languages and Tools :
 <img src="https://skillicons.dev/icons?i=javascript,html,css,php,python,mysql,docker,linux" width={100}/><br>
 
