@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marcelo Halker</title>
+        <link rel="icon" type="image/png" href="./assets/img/logos/logo-biblioteca.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <style>
+        /*
+      CSS básico para o canvas ocupar a tela inteira.
+      O Three.js desenha tudo dentro do elemento <canvas>.
+    */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000000;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: grab;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        .hud {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 10;
+            max-width: 320px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.027);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            color: #dbdbdb;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .hud strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loaderLogo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .loaderDots {
+            display: flex;
+            gap: 10px;
+        }
+
+        .loaderDots span {
+            width: 10px;
+            height: 10px;
+            background: #ff9900;
+            border-radius: 50%;
+            animation: pulseDot 1s infinite ease-in-out;
+        }
+
+        .loaderDots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loaderDots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulseDot {
+
+            0%,
+            100% {
+                transform: scale(0.7);
+                opacity: 0.35;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+        }
+
+        /* POPUP COMEÇA ESCONDIDO */
+
+        #footerPopup {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 999;
+
+            opacity: 0;
+            transform: translateX(-80px);
+            pointer-events: none;
+
+            transition: all 0.7s ease;
+        }
+
+        /* QUANDO ENTRA */
+
+        #footerPopup.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        /* QUANDO SAI */
+
+        #footerPopup.hide {
+            opacity: 0;
+            transform: translateX(-80px);
+            pointer-events: none;
+        }
+
+        /*
+========================================
+CARD DO POPUP
+========================================
+*/
+
+        .footerPopupCard {
+            position: relative;
+            z-index: 2;
+            /* card fica na frente da coruja */
+
+            width: 320px;
+            padding: 18px;
+            border-radius: 18px;
+
+            background: rgba(20, 20, 20, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+
+            color: white;
+            backdrop-filter: blur(10px);
+
+            transform: translateX(0);
+            opacity: 1;
+            transition: 0.4s ease;
+        }
+
+        .footerPopupCard.hidden {
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /*
+========================================
+TEXTO
+========================================
+*/
+
+        .footerPopupCard p {
+            margin: 0 0 14px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /*
+========================================
+BOTÕES
+========================================
+*/
+
+        .footerPopupButtons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .footerPopupButtons button {
+            border: 0;
+            padding: 10px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #understoodButton {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        #helpButton {
+            background: #ff9900;
+            color: black;
+        }
+
+        /*
+========================================
+BOTÃO REABRIR (+)
+========================================
+*/
+
+        #reopenPopupButton {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 1000;
+
+            width: 46px;
+            height: 46px;
+            border: 0;
+            border-radius: 50%;
+
+            background: #ff9900;
+            color: black;
+
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+
+            display: none;
+        }
+
+        /*
+========================================
+CORUJA (FORA DO CARD)
+========================================
+*/
+
+        .popupOwl {
+            position: absolute;
+
+            top: -90px;
+            right: 20px;
+
+            width: 100px;
+            height: auto;
+
+            z-index: 1;
+            /* atrás do card */
+
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .popupOwl.hidden {
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.1s ease;
+        }
+
+        #mobileTerminalInput {
+            position: fixed;
+            left: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loadingScreen">
+        <div class="loaderDots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="loaderLogo">Portfólio Mahal</div>
+        <p>Carregando...</p>
+    </div>
+
+    <input id="mobileTerminalInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off"
+        spellcheck="false" />
+
+    <div id="footerPopup">
+
+        <img src="/assets/img/elementos/marcelo-olhar.png" alt="Coruja" class="popupOwl">
+
+        <div class="footerPopupCard">
+            <p>Hello World! Seja bem vindo! <br> Precisando de ajuda.</p>
+
+            <div class="footerPopupButtons">
+                <button id="helpButton"><i class="fa-brands fa-whatsapp"></i> Entrar em contato</button>
+                <button id="understoodButton"><i class="fa-solid fa-x"></i></button>
+            </div>
+        </div>
+
+    </div>
+    <button id="reopenPopupButton"><i class="fa-brands fa-whatsapp"></i></button>
+
+    <div class="hud">
+        <a href="/"><i class="fa-solid fa-hand-point-left"></i></a>
+    </div>
+
+
+    <!--
+    O canvas será criado automaticamente pelo Three.js e inserido no body.
+  -->
+
+
+    <script type="module">
+        /*
+          Importamos o Three.js por CDN.
+          Para um projeto real com Vite/React/Electron, você pode instalar com:
+          npm install three
+        */
+        import * as THREE from 'https://esm.sh/three@0.160.0';
+
+        import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
+
+        /* =========================================================
+          1. CONFIGURAÇÃO BASE DA CENA
+          =========================================================
+    
+          A cena é o "mundo" 3D.
+          Tudo que aparecer no board precisa ser adicionado dentro dela:
+          chão, pontinhos, cubos, imagens, blocos de anotação etc.
+        */
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        /*
+          O renderer é quem desenha a cena 3D na tela.
+          antialias: suaviza as bordas.
+          alpha: permite transparência, se necessário no futuro.
+        */
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+        });
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        /* =========================================================
+          2. CÂMERA DE CIMA PARA BAIXO
+          =========================================================
+    
+          Agora usamos PerspectiveCamera.
+    
+          Antes estávamos usando OrthographicCamera, que é ótima para boards 2D,
+          mas ela deixa o cubo com aparência de estar colado no chão porque quase
+          não existe sensação de profundidade.
+    
+          A PerspectiveCamera cria profundidade, parallax e sensação de mundo 3D.
+          Para manter a ideia de board visto de cima, deixamos a câmera alta,
+          olhando para baixo, mas com uma leve inclinação.
+        */
+        const cameraSettings = {
+            distance: 46,
+            minDistance: 18,
+            maxDistance: 90,
+            tiltZ: 18,
+        };
+
+        /*
+          O cameraTarget é o ponto do chão para onde a câmera está olhando.
+          Em vez de mover a câmera de forma solta, movemos esse alvo.
+          Isso deixa o board mais estável, principalmente no zoom por pinça.
+        */
+        const cameraTarget = new THREE.Vector3(0, 0, 0);
+
+        let cameraDistance = cameraSettings.distance;
+
+        function createPerspectiveCamera() {
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+
+            /*
+              A câmera fica alta, mas levemente inclinada.
+              Isso cria o efeito 3D/parallax sem perder a leitura de board.
+      
+              X = esquerda/direita
+              Y = altura
+              Z = profundidade
+            */
+            camera.position.set(
+                cameraTarget.x,
+                cameraDistance,
+                cameraTarget.z + cameraSettings.tiltZ
+            );
+            camera.lookAt(cameraTarget);
+
+            return camera;
+        }
+
+        const camera = createPerspectiveCamera();
+
+        const introCameraStart = new THREE.Vector3(
+            -20,
+            60,
+            40
+        );
+
+        const introCameraEnd = new THREE.Vector3(
+            cameraTarget.x,
+            cameraDistance,
+            cameraTarget.z + cameraSettings.tiltZ
+        );
+
+        /* =========================================================
+          3. LUZES DO MUNDO
+          =========================================================
+    
+          Como teremos cubos e objetos 3D, precisamos de iluminação.
+          AmbientLight ilumina tudo de forma geral.
+          DirectionalLight cria sombra e volume nos objetos.
+        */
+
+        /* =========================================================
+        pontos de luzes
+        =========================================================
+        */
+
+        function createPointLightwhite({
+            x = 0,
+            y = 5,
+            z = 0,
+            color = 0xffffff,
+            intensity = 20,
+            distance = 60,
+            castShadow = true
+        }) {
+            const light = new THREE.PointLight();
+
+            light.color.set(color);
+            light.intensity = intensity;
+            light.distance = distance;
+
+            light.position.set(x, y, z);
+
+            light.castShadow = castShadow;
+
+            if (castShadow) {
+                light.shadow.mapSize.width = 512;
+                light.shadow.mapSize.height = 512;
+
+                light.shadow.bias = -0.0005;
+
+                light.shadow.camera.near = 0.5;
+                light.shadow.camera.far = 100;
+            }
+
+            scene.add(light);
+
+            return light;
+        }
+
+        createPointLightwhite({
+            x: 21,
+            y: 12,
+            z: -11,
+            color: 0xF0F0F0,
+            intensity: 200,
+            distance: 40,
+            castShadow: false
+        });
+        createPointLightwhite({
+            x: 0,
+            y: 15,
+            z: 0,
+            color: 0xF0F0F0,
+            intensity: 200,
+            distance: 40,
+            castShadow: false
+        });
+
+        createPointLightwhite({
+            x: 0,
+            y: 15,
+            z: 15,
+            color: 0xF0F0F0,
+            intensity: 200,
+            distance: 40,
+            castShadow: false
+        });
+
+        createPointLightwhite({
+            x: -20,
+            y: 15,
+            z: 5,
+            color: 0xF0F0F0,
+            intensity: 100,
+            distance: 40,
+            castShadow: true
+        });
+
+
+        function createPointLight({
+            x = 0,
+            y = 5,
+            z = 0,
+            color = 0xffffff,
+            intensity = 100,
+            distance = 60,
+            castShadow = true
+        }) {
+            const light = new THREE.PointLight();
+
+            light.color.set(color);
+            light.intensity = intensity;
+            light.distance = distance;
+
+            light.position.set(x, y, z);
+
+            light.castShadow = castShadow;
+
+            if (castShadow) {
+                light.shadow.mapSize.width = 256;
+                light.shadow.mapSize.height = 256;
+
+                light.shadow.bias = -0.0005;
+
+                light.shadow.camera.near = 0.5;
+                light.shadow.camera.far = 100;
+            }
+
+            scene.add(light);
+
+            return light;
+        }
+
+        createPointLight({
+            x: -10,
+            y: 5,
+            z: -5,
+            color: 0x4f46e5,
+            intensity: 50,
+            distance: 80
+        });
+
+        createPointLight({
+            x: 10,
+            y: 5,
+            z: 0,
+            color: 0xff9900,
+            intensity: 100,
+            distance: 70
+        });
+
+        createPointLight({
+            x: -8,
+            y: 2,
+            z: 16,
+            color: 0x2cff05,
+            intensity: 30,
+            distance: 70
+        });
+
+        /* =========================================================
+          4. CHÃO BRANCO DO BOARD
+          =========================================================
+    
+          Esse é o shape branco que funciona como o "chão" do mundo.
+          Ele é um plano 3D rotacionado para ficar horizontal.
+        */
+        const boardSize = 240;
+
+        const floorGeometry = new THREE.PlaneGeometry(boardSize, boardSize);
+        const floorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x222222,
+            roughness: 0.9,
+            metalness: 0,
+        });
+
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+
+        /*
+          Por padrão, o PlaneGeometry nasce em pé.
+          Rotacionamos -90 graus no eixo X para ele virar chão.
+        */
+        floor.receiveShadow = true;
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        scene.add(floor);
+
+        //Luz do mouse
+        const mouseLight = new THREE.PointLight();
+
+        mouseLight.color.set(0xffffff);
+        mouseLight.intensity = 35;
+        mouseLight.distance = 45;
+        mouseLight.decay = 2;
+
+        mouseLight.position.set(0, 12, 0);
+
+        // ativa sombra
+        mouseLight.castShadow = true;
+        mouseLight.shadow.mapSize.width = 512;
+        mouseLight.shadow.mapSize.height = 512;
+        mouseLight.shadow.bias = -0.0005;
+        mouseLight.shadow.camera.near = 1;
+        mouseLight.shadow.camera.far = 80;
+
+        scene.add(mouseLight);
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function moveMouseLight(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObject(floor);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point;
+
+                mouseLight.position.set(
+                    point.x,
+                    12, // altura fixa da luz
+                    point.z
+                );
+            }
+        }
+
+        renderer.domElement.addEventListener("pointermove", moveMouseLight);
+
+        /* =========================================================
+          5. PONTINHOS NO CHÃO, SIMULANDO UM BOARD/MAPA
+          =========================================================
+    
+          Criamos vários pequenos círculos cinza claro no chão.
+          Isso dá sensação de escala e ajuda o usuário a se orientar,
+          parecido com grids ou pontos do Miro/Figma.
+        */
+
+        /* =========================================================
+          6. ELEMENTOS DO BOARD
+          =========================================================
+    
+          Aqui criamos alguns exemplos iniciais:
+          - Cubo 3D
+          - Foto/imagem
+          - Blocos de anotação
+    
+          Cada item é adicionado ao mundo em posições X/Z diferentes.
+        */
+
+        function createCube({
+            x = 0,
+            y = 1,
+            z = 0,
+            width = 2,
+            height = 2,
+            depth = 2,
+            color = 0x111111
+        }) {
+            const geometry = new THREE.BoxGeometry(
+                width,
+                height,
+                depth
+            );
+
+            const material = new THREE.MeshStandardMaterial({
+                color,
+                roughness: 0.45,
+                metalness: 0.05,
+            });
+
+            const cube = new THREE.Mesh(
+                geometry,
+                material
+            );
+
+            cube.position.set(x, y, z);
+
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+
+            scene.add(cube);
+
+            return cube;
+        }
+
+        createCube({
+            x: -10,
+            y: 1,
+            z: -4,
+            width: 2,
+            height: 2,
+            depth: 2,
+            color: 0x111111
+        });
+
+        createCube({
+            x: 10,
+            y: 3,
+            z: 18,
+            width: 2,
+            height: 6,
+            depth: 2,
+            color: 0x4f46e5
+        });
+
+        createCube({
+            x: -7,
+            y: 5,
+            z: 10,
+            width: 1,
+            height: 1,
+            depth: 1,
+            color: 0xff9900
+        });
+
+
+        /*
+          Cria um bloco tipo post-it/anotação.
+          Ele é um plano colorido com texto desenhado em canvas 2D.
+          Depois transformamos esse canvas em textura para usar no Three.js.
+        */
+        function createNoteBlock({ x, z, title, text, color = '#fff2a8' }) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 612;
+            canvas.height = 420;
+
+            const ctx = canvas.getContext('2d');
+
+            /* Fundo do card */
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            /* Borda */
+            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+            /* Título */
+            ctx.fillStyle = '#111111';
+            ctx.font = 'bold 44px Arial';
+            ctx.fillText(title, 36, 64);
+
+            /* Texto */
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#333333';
+
+            const lines = text.split('\n');
+            lines.forEach((line, index) => {
+                ctx.fillText(line, 36, 120 + index * 36);
+            });
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+            const geometry = new THREE.PlaneGeometry(5.2, 3.2);
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+            });
+
+            const note = new THREE.Mesh(geometry, material);
+            note.rotation.x = -Math.PI / 2;
+            note.position.set(x, 0.07, z);
+            scene.add(note);
+
+            return note;
+        }
+
+        createNoteBlock({
+            x: -20,
+            z: -7,
+            title: 'Biblioteca Mahal',
+            text: 'Livros Físicos\nMateriais Digitais\nBases De Dados.',
+            color: '#c7f9cc',
+        });
+
+
+        /*
+          Cria uma foto/imagem no board.
+          Aqui usamos uma imagem pública de exemplo.
+          No projeto final, essa URL pode vir do banco de dados, upload do usuário
+          ou uma pasta local do app.
+        */
+        function createImageCard({
+            x = 0,
+            y = 0.9,
+            z = 0,
+
+            rotationX = -Math.PI / 3,
+            rotationY = 0,
+            rotationZ = 0,
+
+            imageUrl,
+            width = 6,
+            height = null,
+
+            castShadow = true,
+            receiveShadow = true
+        }) {
+            const loader = new THREE.TextureLoader();
+
+            loader.load(imageUrl, (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+
+                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+
+                const imageWidth = texture.image.width;
+                const imageHeight = texture.image.height;
+                const aspect = imageHeight / imageWidth;
+
+                const finalHeight = height ?? width * aspect;
+
+                const geometry = new THREE.PlaneGeometry(
+                    width,
+                    finalHeight
+                );
+
+                const material = new THREE.MeshStandardMaterial({
+                    map: texture,
+                    transparent: true,
+                    alphaTest: 0.1,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                    roughness: 0.8,
+                    metalness: 0,
+                });
+
+                const imagePlane = new THREE.Mesh(
+                    geometry,
+                    material
+                );
+
+                imagePlane.position.set(
+                    x,
+                    y,
+                    z
+                );
+
+                imagePlane.rotation.set(
+                    rotationX,
+                    rotationY,
+                    rotationZ
+                );
+
+                imagePlane.castShadow = castShadow;
+                imagePlane.receiveShadow = receiveShadow;
+
+                scene.add(imagePlane);
+            });
+        }
+
+        createImageCard({
+            x: 0,
+            y: 1.5,
+            z: 1.5,
+
+            rotationX: -Math.PI / 3,
+            rotationY: 0,
+            rotationZ: 0,
+
+            width: 18,
+            imageUrl: '/assets/img/logos/portfolio2.png',
+        });
+
+        createImageCard({
+            x: -20,
+            y: 1.5,
+            z: -10,
+
+            rotationX: -Math.PI / 3,
+            rotationY: 0,
+            rotationZ: 0,
+
+            width: 10,
+            imageUrl: '/assets/img/logos/logo-mark-biblioteca.png',
+        });
+
+
+
+        /* =========================
+           SETAS ESQUERDA
+        ========================= */
+
+        createImageCard({
+            x: -9,
+            y: 1.7,
+            z: -10,
+
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/arrown-left-up.png',
+        });
+
+        createImageCard({
+            x: -15,
+            y: 0.7,
+            z: -2,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 5,
+            imageUrl: '/assets/img/elementos/arrown-left.png',
+        });
+
+        createImageCard({
+            x: -10,
+            y: 0.9,
+            z: 6,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/arrown-left-down.png',
+        });
+
+
+
+        /* =========================
+           SETAS DIREITA
+        ========================= */
+
+        createImageCard({
+            x: 9,
+            y: 4,
+            z: -8,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/arrown-rigth-up.png',
+        });
+
+        createImageCard({
+            x: 15,
+            y: 0.9,
+            z: -2,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/arrown-rigth.png',
+        });
+
+        createImageCard({
+            x: 10,
+            y: 1,
+            z: 6,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/arrown-right-down.png',
+        });
+
+
+        /* =========================
+           Elementos
+        ========================= */
+
+        createImageCard({
+            x: -12,
+            y: 4,
+            z: -15,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: 0.1,
+
+            width: 0.5,
+            imageUrl: '/assets/img/elementos/barra-ps.png',
+        });
+
+        createImageCard({
+            x: 12,
+            y: 4,
+            z: -13,
+
+            rotationX: -Math.PI / 3,
+            rotationZ: -0.1,
+
+            width: 4,
+            imageUrl: '/assets/img/elementos/caractere-psd.png',
+        });
+
+        /* =========================
+           AVATARES LINHA 1
+        ========================= */
+
+        createImageCard({
+            x: -8,
+            y: 3.12,
+            z: 15.5,
+
+            rotationX: -Math.PI / 3,
+            rotationY: 0, // ou Math.PI
+            rotationZ: -Math.PI / 10,
+
+            width: 5.5,
+            imageUrl: '/assets/img/fotos/foto-marcelo-halker.png',
+
+            castShadow: true,
+            receiveShadow: false
+        });
+
+        createImageCard({
+            x: -8,
+            y: 0.1,
+            z: 20,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/elementos/redes.png',
+        });
+
+        /* =========================
+           Educação
+        ========================= */
+
+        createImageCard({
+            x: 16,
+            y: 0.1,
+            z: 18,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 7.5,
+            imageUrl: '/assets/img/logos/cursos/abra.png',
+        });
+
+        createImageCard({
+            x: 22,
+            y: 0.1,
+            z: 18,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 4.5,
+            imageUrl: '/assets/img/logos/cursos/criar.png',
+        });
+
+        createImageCard({
+            x: 30,
+            y: 0.1,
+            z: 18,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 7.5,
+            imageUrl: '/assets/img/logos/cursos/SENAI_logo.png',
+        });
+
+        createImageCard({
+            x: 30,
+            y: 0.1,
+            z: 24,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 7.5,
+            imageUrl: '/assets/img/logos/cursos/saga.png',
+        });
+
+        createImageCard({
+            x: 22,
+            y: 0.1,
+            z: 24,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 3.5,
+            imageUrl: '/assets/img/logos/cursos/wellington.png',
+        });
+
+        createImageCard({
+            x: 15,
+            y: 0.1,
+            z: 24,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 7.5,
+            imageUrl: '/assets/img/logos/cursos/brain-acade.png',
+        });
+
+
+        /* =========================
+           Softwares
+        ========================= */
+        createImageCard({
+            x: 24,
+            y: 0.1,
+            z: -1,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 15,
+            imageUrl: '/assets/img/logos/soft-ling.png',
+        });
+
+
+        createImageCard({
+            x: -1,
+            y: 0.2,
+            z: 31,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 10,
+            imageUrl: '/assets/img/ilustration/marcelo-halker-coringa-finish.jpg',
+        });
+
+
+        /* =========================
+           redes
+        ========================= */
+
+        createImageCard({
+            x: -25,
+            y: 1.8,
+            z: 8,
+
+            rotationX: -Math.PI / 2.3,
+            rotationZ: 0,
+
+            width: 10,
+            imageUrl: '/assets/img/elementos/pontinhos/numeros-pontinhos.png',
+        });
+        createImageCard({
+            x: -20,
+            y: 0.02,
+            z: 13,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0,
+
+            width: 4,
+            imageUrl: '/assets/img/elementos/pontinhos/view-1m.png',
+        });
+        createImageCard({
+            x: -18,
+            y: 0.02,
+            z: 14,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0.2,
+
+            width: 4,
+            imageUrl: '/assets/img/elementos/pontinhos/view-3m.png',
+        });
+        createImageCard({
+            x: -16,
+            y: 0.02,
+            z: 15,
+
+            rotationX: -Math.PI / 2,
+            rotationZ: 0.5,
+
+            width: 4,
+            imageUrl: '/assets/img/elementos/pontinhos/view-5m.png',
+        });
+
+        createImageCard({
+            x: -21.5,
+            y: 3,
+            z: 6.2,
+
+            rotationX: -Math.PI / 2.3,
+            rotationZ: 0,
+
+            width: 1,
+            imageUrl: '/assets/img/logos/logo-instagram.png',
+        });
+
+
+        /* =========================================================
+   BOTÕES 3D COM LINKS
+========================================================= */
+
+        const linkButtons = [];
+
+        function createRoundedRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function createLinkButton3D({
+            text = "Botão",
+            icon = "↗",
+            url = "#",
+
+            x = 0,
+            y = 0.15,
+            z = 0,
+
+            width = 5,
+            height = 1.2,
+
+            rotationX = -Math.PI / 2,
+            rotationY = 0,
+            rotationZ = 0,
+
+            background = "#111111",
+            border = "#ff9900",
+            textColor = "#ffffff",
+            iconColor = "#ff9900",
+
+            openInNewTab = true
+        }) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1600;
+            canvas.height = 400;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // sombra
+            ctx.shadowColor = "rgba(0,0,0,0.55)";
+            ctx.shadowBlur = 45;
+            ctx.shadowOffsetY = 18;
+
+            // fundo
+            createRoundedRect(ctx, 40, 40, 1520, 320, 90);
+            ctx.fillStyle = background;
+            ctx.fill();
+
+            // borda
+            ctx.shadowColor = "transparent";
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = border;
+            ctx.stroke();
+
+            // brilho interno
+            const gradient = ctx.createLinearGradient(40, 40, 1560, 360);
+            gradient.addColorStop(0, "rgba(255,255,255,0.16)");
+            gradient.addColorStop(0.45, "rgba(255,255,255,0.03)");
+            gradient.addColorStop(1, "rgba(255,255,255,0.08)");
+
+            createRoundedRect(ctx, 55, 55, 1490, 290, 80);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // ícone
+            ctx.fillStyle = iconColor;
+            ctx.font = "bold 110px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(icon, 210, 205);
+
+            // texto
+            ctx.fillStyle = textColor;
+            ctx.font = "bold 82px Poppins, Arial";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, 330, 205);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+
+            const geometry = new THREE.PlaneGeometry(width, height);
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+
+            const button = new THREE.Mesh(geometry, material);
+
+            button.position.set(x, y, z);
+            button.rotation.set(rotationX, rotationY, rotationZ);
+
+            button.userData.isLinkButton = true;
+            button.userData.url = url;
+            button.userData.openInNewTab = openInNewTab;
+
+            scene.add(button);
+            linkButtons.push(button);
+
+            return button;
+        }
+
+        createLinkButton3D({
+            text: " Entrar em contato",
+            icon: "╰┈➤ ",
+            url: "https://wa.me/5511997830900",
+            x: 0,
+            y: 0.18,
+            z: 7,
+            width: 5.5,
+            height: 1.25,
+            background: "#0f2017",
+            border: "#25d366",
+            iconColor: "#25d366"
+        });
+
+        createLinkButton3D({
+            text: "Acessar Instagram",
+            icon: "◎",
+            url: "https://www.instagram.com/um_seguidor_um_ponto/",
+            x: -15,
+            y: 0.18,
+            z: 7,
+            width: 5.5,
+            height: 1.25,
+            background: "#1b1020",
+            border: "#e1306c",
+            iconColor: "#e1306c"
+        });
+
+        createLinkButton3D({
+            text: "GitHub",
+            icon: "{}",
+            url: "https://github.com/SEU-USUARIO",
+            x: 15,
+            y: 2,
+            z: 5,
+            width: 5.5,
+            height: 1.25,
+            background: "#101014",
+            border: "#ffffff",
+            iconColor: "#ffffff"
+        });
+
+        createLinkButton3D({
+            text: "Entrar Biblioteca",
+            icon: "▶",
+            url: "https://biblioteca.mahal.pro/",
+            x: -20,
+            y: 0.18,
+            z: -2,
+            width: 5.5,
+            height: 1.25,
+            background: "#200f0f",
+            border: "#ff0000",
+            iconColor: "#ff0000"
+        });
+
+
+        const linkButtonRaycaster = new THREE.Raycaster();
+        const linkButtonMouse = new THREE.Vector2();
+
+        let pointerDownPosition = { x: 0, y: 0 };
+        let pointerMoved = false;
+
+        renderer.domElement.addEventListener("pointerdown", (event) => {
+            pointerDownPosition.x = event.clientX;
+            pointerDownPosition.y = event.clientY;
+            pointerMoved = false;
+        });
+
+        renderer.domElement.addEventListener("pointermove", (event) => {
+            const dx = event.clientX - pointerDownPosition.x;
+            const dy = event.clientY - pointerDownPosition.y;
+
+            if (Math.sqrt(dx * dx + dy * dy) > 8) {
+                pointerMoved = true;
+            }
+        });
+
+        renderer.domElement.addEventListener("pointerup", (event) => {
+            if (pointerMoved) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+
+            linkButtonMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            linkButtonMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            linkButtonRaycaster.setFromCamera(linkButtonMouse, camera);
+
+            const intersects = linkButtonRaycaster.intersectObjects(linkButtons, true);
+
+            if (!intersects.length) return;
+
+            const button = intersects[0].object;
+
+            if (!button.userData.isLinkButton) return;
+
+            if (button.userData.openInNewTab) {
+                window.open(button.userData.url, "_blank");
+            } else {
+                window.location.href = button.userData.url;
+            }
+        });
+
+
+        function createModel3D({
+            modelUrl,
+            x = 0,
+            y = 0,
+            z = 0,
+
+            scale = 1,
+
+            rotationX = 0,
+            rotationY = 0,
+            rotationZ = 0,
+
+            castShadow = true,
+            receiveShadow = true
+        }) {
+            const loader = new GLTFLoader();
+
+            loader.load(
+                modelUrl,
+                (gltf) => {
+                    const model = gltf.scene;
+
+                    model.position.set(x, y, z);
+                    model.scale.set(scale, scale, scale);
+                    model.rotation.set(rotationX, rotationY, rotationZ);
+
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = castShadow;
+                            child.receiveShadow = receiveShadow;
+                        }
+                    });
+
+                    scene.add(model);
+                },
+                undefined,
+                (error) => {
+                    console.error("Erro ao carregar modelo 3D:", error);
+                }
+            );
+        }
+
+        createModel3D({
+            modelUrl: "/assets/js/threejs/model3d/notebook_p1.glb",
+
+            x: 0,
+            y: 1.5,
+            z: -5,
+
+            scale: 3,
+
+            rotationX: -0.5,
+            rotationY: 0,
+            rotationZ: 0
+        });
+        createModel3D({
+            modelUrl: "/assets/js/threejs/model3d/office_lamp.glb",
+
+            x: 23,
+            y: 0,
+            z: -15,
+
+            scale: 0.3,
+
+            rotationX: 0,
+            rotationY: -2,
+            rotationZ: 0
+        });
+        createModel3D({
+            modelUrl: "/assets/js/threejs/model3d/wacom_pen.glb",
+
+            x: -4,
+            y: 0.2,
+            z: 25,
+
+            scale: 0.3,
+
+            rotationX: 0,
+            rotationY: -0.5,
+            rotationZ: 0
+        });
+
+        const motionVideos = [
+            "/assets/videos/motion-01.mp4",
+            "/assets/videos/motion-02.mp4",
+            "/assets/videos/motion-03.mp4",
+            "/assets/videos/motion-04.mp4"
+        ];
+
+        let currentMotionVideo = 0;
+        let motionVideo = null;
+        let motionVideoTexture = null;
+        let motionVideoPlane = null;
+        let motionScreenMesh = null;
+        let pauseOverlay = null;
+
+        let motionMaxVideoWidth = 0;
+        let motionMaxVideoHeight = 0;
+
+        function createScreenButton(text) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 256;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "rgba(0,0,0,0.72)";
+            ctx.beginPath();
+            ctx.arc(128, 128, 105, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ff9900";
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 150px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, 128, 118);
+
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+
+            return new THREE.Mesh(
+                new THREE.PlaneGeometry(1, 1),
+                material
+            );
+        }
+
+        function createPauseOverlay() {
+            const canvas = document.createElement("canvas");
+            canvas.width = 512;
+            canvas.height = 512;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "rgba(0,0,0,0.48)";
+            ctx.fillRect(0, 0, 512, 512);
+
+            ctx.fillStyle = "rgba(0,0,0,0.65)";
+            ctx.beginPath();
+            ctx.arc(256, 256, 92, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ff9900";
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(230, 195);
+            ctx.lineTo(230, 317);
+            ctx.lineTo(330, 256);
+            ctx.closePath();
+            ctx.fill();
+
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                depthWrite: false,
+                depthTest: false,
+                side: THREE.DoubleSide
+            });
+
+            const overlay = new THREE.Mesh(
+                new THREE.PlaneGeometry(1, 1),
+                material
+            );
+
+            overlay.visible = false;
+            overlay.renderOrder = 10;
+            overlay.userData.action = "playPause";
+
+            return overlay;
+        }
+
+        function fitVideoToScreen(video, plane, maxWidth, maxHeight) {
+            const videoAspect = video.videoWidth / video.videoHeight;
+            const screenAspect = maxWidth / maxHeight;
+
+            let finalWidth;
+            let finalHeight;
+
+            if (videoAspect > screenAspect) {
+                finalWidth = maxWidth;
+                finalHeight = maxWidth / videoAspect;
+            } else {
+                finalHeight = maxHeight;
+                finalWidth = maxHeight * videoAspect;
+            }
+
+            plane.scale.set(finalWidth, finalHeight, 1);
+
+            if (pauseOverlay) {
+                pauseOverlay.scale.set(finalWidth, finalHeight, 1);
+            }
+        }
+
+        function createComputerScreen({
+            x = 0,
+            y = 3,
+            z = 0,
+            width = 16.5,
+            height = 9.3,
+            rotationX = 0,
+            rotationY = 0,
+            rotationZ = 0
+        }) {
+            const group = new THREE.Group();
+
+            group.position.set(x, y, z);
+            group.rotation.set(rotationX, rotationY, rotationZ);
+
+            const frame = new THREE.Mesh(
+                new THREE.PlaneGeometry(width, height),
+                new THREE.MeshBasicMaterial({
+                    color: 0x070707,
+                    side: THREE.DoubleSide
+                })
+            );
+            group.add(frame);
+
+            const border = new THREE.Mesh(
+                new THREE.PlaneGeometry(width * 0.96, height * 0.88),
+                new THREE.MeshBasicMaterial({
+                    color: 0xff9900,
+                    side: THREE.DoubleSide
+                })
+            );
+            border.position.z = 0.01;
+            group.add(border);
+
+            const inner = new THREE.Mesh(
+                new THREE.PlaneGeometry(width * 0.93, height * 0.84),
+                new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    side: THREE.DoubleSide
+                })
+            );
+            inner.position.z = 0.02;
+            group.add(inner);
+
+            motionVideo = document.createElement("video");
+            motionVideo.src = motionVideos[currentMotionVideo];
+            motionVideo.loop = false;
+            motionVideo.muted = true;
+            motionVideo.playsInline = true;
+            motionVideo.crossOrigin = "anonymous";
+
+            motionVideoTexture = new THREE.VideoTexture(motionVideo);
+            motionVideoTexture.colorSpace = THREE.SRGBColorSpace;
+
+            motionVideoPlane = new THREE.Mesh(
+                new THREE.PlaneGeometry(1, 1),
+                new THREE.MeshBasicMaterial({
+                    map: motionVideoTexture,
+                    side: THREE.DoubleSide
+                })
+            );
+
+            motionVideoPlane.position.set(0, 0, 0.06);
+            motionVideoPlane.userData.action = "playPause";
+            group.add(motionVideoPlane);
+
+            pauseOverlay = createPauseOverlay();
+            pauseOverlay.position.set(0, 0, 0.09);
+            group.add(pauseOverlay);
+
+            motionMaxVideoWidth = width * 0.82;
+            motionMaxVideoHeight = height * 0.78;
+
+            motionVideo.addEventListener("loadedmetadata", () => {
+                fitVideoToScreen(
+                    motionVideo,
+                    motionVideoPlane,
+                    motionMaxVideoWidth,
+                    motionMaxVideoHeight
+                );
+
+                motionVideo.play().catch(() => {
+                    pauseOverlay.visible = true;
+                });
+            });
+
+            motionVideo.addEventListener("ended", () => {
+                changeMotionVideo(1);
+            });
+
+            const prevButton = createScreenButton("‹");
+            prevButton.position.set(-width * 0.43, 0, 0.08);
+            prevButton.userData.action = "prev";
+            group.add(prevButton);
+
+            const nextButton = createScreenButton("›");
+            nextButton.position.set(width * 0.43, 0, 0.08);
+            nextButton.userData.action = "next";
+            group.add(nextButton);
+
+            scene.add(group);
+
+            return group;
+        }
+
+        motionScreenMesh = createComputerScreen({
+            x: 0,
+            y: 4.90,
+            z: -12.5,
+            width: 16.5,
+            height: 9.3,
+            rotationX: -0.65,
+            rotationY: 0,
+            rotationZ: 0
+        });
+
+        function changeMotionVideo(direction) {
+            currentMotionVideo += direction;
+
+            if (currentMotionVideo < 0) {
+                currentMotionVideo = motionVideos.length - 1;
+            }
+
+            if (currentMotionVideo >= motionVideos.length) {
+                currentMotionVideo = 0;
+            }
+
+            pauseOverlay.visible = false;
+
+            motionVideo.pause();
+            motionVideo.src = motionVideos[currentMotionVideo];
+            motionVideo.load();
+
+            motionVideo.onloadedmetadata = () => {
+                fitVideoToScreen(
+                    motionVideo,
+                    motionVideoPlane,
+                    motionMaxVideoWidth,
+                    motionMaxVideoHeight
+                );
+
+                motionVideo.play().catch(() => {
+                    pauseOverlay.visible = true;
+                });
+            };
+        }
+
+        const videoClickRaycaster = new THREE.Raycaster();
+        const videoClickMouse = new THREE.Vector2();
+
+        renderer.domElement.addEventListener("click", (event) => {
+            if (!motionScreenMesh) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+
+            videoClickMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            videoClickMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            videoClickRaycaster.setFromCamera(videoClickMouse, camera);
+
+            const intersects = videoClickRaycaster.intersectObjects(
+                motionScreenMesh.children,
+                true
+            );
+
+            if (!intersects.length) return;
+
+            const clicked = intersects[0].object;
+
+            if (clicked.userData.action === "prev") {
+                changeMotionVideo(-1);
+                return;
+            }
+
+            if (clicked.userData.action === "next") {
+                changeMotionVideo(1);
+                return;
+            }
+
+            if (clicked.userData.action === "playPause") {
+                if (motionVideo.paused) {
+                    motionVideo.play().then(() => {
+                        pauseOverlay.visible = false;
+                    }).catch(() => {
+                        pauseOverlay.visible = true;
+                    });
+                } else {
+                    motionVideo.pause();
+                    pauseOverlay.visible = true;
+                }
+            }
+        });
+
+
+        function createTextBlock({
+            title = "Título",
+            text = "Descrição aqui",
+            x = 0,
+            z = 0,
+            width = 10,
+            height = 4,
+            titleColor = "#ffffff",
+            textColor = "#d6d6d6",
+            align = "center"
+        }) {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = 1200;
+            canvas.height = 600;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const paddingX = 120;
+
+            // TÍTULO
+            ctx.fillStyle = titleColor;
+            ctx.font = "bold 60px Poppins, Arial";
+            ctx.textAlign = align;
+            ctx.textBaseline = "top";
+
+            ctx.fillText(
+                title,
+                align === "center" ? centerX : paddingX,
+                70
+            );
+
+            // TEXTO
+            ctx.fillStyle = textColor;
+            ctx.font = "40px Poppins, Arial";
+            ctx.textAlign = align;
+            ctx.textBaseline = "top";
+
+            const lines = text.split("\n");
+
+            lines.forEach((line, index) => {
+                ctx.fillText(
+                    line,
+                    align === "center" ? centerX : paddingX,
+                    190 + index * 58
+                );
+            });
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+
+            const geometry = new THREE.PlaneGeometry(width, height);
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.set(x, 0.09, z);
+
+            scene.add(plane);
+
+            return plane;
+        }
+
+        createTextBlock({
+            title: "Marcelo Halker",
+            text: "Sou um artista e desenvolvedor apaixonado\n por criatividade, design e tecnologia. \n Desde cedo, sempre fui movido pela \n curiosidade de entender como as coisas \n funcionam e encontrar formas inovadoras \n de resolver problemas.",
+            x: 3,
+            z: 18,
+            width: 20,
+            height: 10,
+            align: "left"
+        });
+
+        createTextBlock({
+            title: "Marcelo Halker",
+            text: "Sou um artista e desenvolvedor apaixonado\n por criatividade, design e tecnologia. \n Desde cedo, sempre fui movido pela \n curiosidade de entender como as coisas \n funcionam e encontrar formas inovadoras \n de resolver problemas.",
+            x: 3,
+            z: 18,
+            width: 20,
+            height: 10,
+            align: "left"
+        });
+
+        createTextBlock({
+            title: "Formação e Desenvolvimento",
+            text: "Ao longo dos anos, estudei em instituições como SAGA, \nSENAI, Instituto Criar Tv e Cinema, ABRA Academia de arte \n e Brainstorm Academy, complementando minha formação \ncom estudos contínuos em Designer, Motion Graphics, 3D, \ndesenvolvimento web, servidores Linux, Docker, bancos de \ndados, automações e Inteligência Artificial.",
+            x: 20,
+            z: 10,
+            width: 20,
+            height: 10,
+            align: "left"
+        });
+
+        createTextBlock({
+            title: "Software & Linguagens",
+            text: "",
+            x: 25,
+            z: -3,
+            width: 20,
+            height: 10,
+            align: "left"
+        });
+
+        /* =========================================================
+          7. MOVIMENTAÇÃO DA CÂMERA NO DESKTOP E MOBILE
+          =========================================================
+    
+          A câmera não gira.
+          Ela apenas desliza no eixo X/Z e aproxima/afasta com zoom.
+    
+          Desktop:
+          - Clique e arraste: move a câmera
+          - Scroll: zoom in/out
+    
+          Mobile:
+          - Arrastar com um dedo: move a câmera
+          - Pinça com dois dedos: zoom in/out
+        */
+        const controlsState = {
+            isDragging: false,
+            lastPointerX: 0,
+            lastPointerY: 0,
+            lastPinchDistance: null,
+            isPinching: false,
+            blockDragUntilAllFingersUp: false,
+            activePointers: new Map(),
+        };
+
+        function updateCameraPosition() {
+            /*
+              A câmera acompanha o cameraTarget.
+              O zoom muda apenas a distância/altura, sem bagunçar o ponto central.
+            */
+            const zOffsetRatio = cameraSettings.tiltZ / cameraSettings.distance;
+
+            camera.position.set(
+                cameraTarget.x,
+                cameraDistance,
+                cameraTarget.z + cameraDistance * zOffsetRatio
+            );
+
+            camera.lookAt(cameraTarget);
+        }
+
+        function screenDragToWorldMove(deltaX, deltaY) {
+            /*
+              Na câmera em perspectiva, o movimento precisa considerar a distância.
+              Quanto mais longe a câmera estiver, maior o deslocamento no mundo.
+            */
+            const moveSpeed = cameraDistance * 0.0012;
+
+            cameraTarget.x -= deltaX * moveSpeed;
+            cameraTarget.z -= deltaY * moveSpeed;
+
+            updateCameraPosition();
+        }
+
+        function setCameraZoom(deltaDistance) {
+            /*
+              Em PerspectiveCamera, o zoom mais natural é aproximar/afastar a câmera,
+              não alterar camera.zoom.
+            */
+            cameraDistance = THREE.MathUtils.clamp(
+                cameraDistance + deltaDistance,
+                cameraSettings.minDistance,
+                cameraSettings.maxDistance
+            );
+
+            updateCameraPosition();
+        }
+
+        renderer.domElement.addEventListener('pointerdown', (event) => {
+            event.preventDefault();
+
+            /*
+              Guardamos os dedos/mouses ativos.
+              Isso evita o bug de o mobile tentar arrastar a câmera
+              enquanto o usuário está fazendo gesto de pinça.
+            */
+            controlsState.activePointers.set(event.pointerId, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            renderer.domElement.setPointerCapture(event.pointerId);
+
+            if (
+                controlsState.activePointers.size === 1 &&
+                !controlsState.blockDragUntilAllFingersUp
+            ) {
+                controlsState.isDragging = true;
+                controlsState.isPinching = false;
+                controlsState.lastPointerX = event.clientX;
+                controlsState.lastPointerY = event.clientY;
+            }
+
+            if (controlsState.activePointers.size >= 2) {
+                controlsState.isDragging = false;
+                controlsState.isPinching = true;
+                controlsState.blockDragUntilAllFingersUp = true;
+                controlsState.lastPinchDistance = getPointerDistance();
+            }
+        });
+
+        renderer.domElement.addEventListener('pointermove', (event) => {
+            event.preventDefault();
+
+            if (!controlsState.activePointers.has(event.pointerId)) return;
+
+            controlsState.activePointers.set(event.pointerId, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            /*
+              Com dois dedos ativos, fazemos apenas zoom.
+              Não movemos a câmera para evitar o "glitch" no mobile.
+            */
+            if (controlsState.isPinching && controlsState.activePointers.size >= 2) {
+                const currentDistance = getPointerDistance();
+
+                if (controlsState.lastPinchDistance !== null) {
+                    const pinchDelta = currentDistance - controlsState.lastPinchDistance;
+                    setCameraZoom(-pinchDelta * 0.08);
+                }
+
+                controlsState.lastPinchDistance = currentDistance;
+                return;
+            }
+
+            if (!controlsState.isDragging) return;
+
+            const deltaX = event.clientX - controlsState.lastPointerX;
+            const deltaY = event.clientY - controlsState.lastPointerY;
+
+            screenDragToWorldMove(deltaX, deltaY);
+
+            controlsState.lastPointerX = event.clientX;
+            controlsState.lastPointerY = event.clientY;
+        });
+
+        function finishPointer(event) {
+            controlsState.activePointers.delete(event.pointerId);
+
+            if (controlsState.activePointers.size === 0) {
+                controlsState.isDragging = false;
+                controlsState.isPinching = false;
+                controlsState.blockDragUntilAllFingersUp = false;
+                controlsState.lastPinchDistance = null;
+                return;
+            }
+
+            /*
+              Depois de uma pinça, não transformamos automaticamente o dedo restante
+              em arraste. Esperamos todos os dedos saírem da tela.
+              Isso remove o salto/glitch no final do zoom mobile.
+            */
+            if (controlsState.activePointers.size === 1) {
+                controlsState.isDragging = false;
+                controlsState.isPinching = false;
+                controlsState.lastPinchDistance = null;
+            }
+        }
+
+        renderer.domElement.addEventListener('pointerup', (event) => {
+            finishPointer(event);
+            renderer.domElement.releasePointerCapture(event.pointerId);
+        });
+
+        renderer.domElement.addEventListener('pointercancel', (event) => {
+            finishPointer(event);
+        });
+
+        renderer.domElement.addEventListener(
+            'wheel',
+            (event) => {
+                event.preventDefault();
+
+                /*
+                  deltaY negativo = scroll para cima = aproxima.
+                  deltaY positivo = scroll para baixo = afasta.
+                */
+                const zoomIntensity = 0.035;
+                setCameraZoom(event.deltaY * zoomIntensity);
+            },
+            { passive: false }
+        );
+
+        /*
+          Eventos de touch para pinça no mobile.
+          Usamos touchstart/touchmove porque fica mais simples calcular
+          a distância entre dois dedos.
+        */
+        function getPointerDistance() {
+            const pointers = [...controlsState.activePointers.values()];
+            if (pointers.length < 2) return null;
+
+            const dx = pointers[0].x - pointers[1].x;
+            const dy = pointers[0].y - pointers[1].y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        /*
+          Antes usamos touchstart/touchmove separados.
+          Agora o mobile também usa Pointer Events.
+          Isso reduz conflito entre arraste e pinça e deixa o movimento mais estável.
+        */
+
+        /* =========================================================
+          8. RESIZE RESPONSIVO
+          =========================================================
+    
+          Quando a tela muda de tamanho, precisamos recalcular a câmera
+          e o renderer para o board não ficar distorcido.
+        */
+        window.addEventListener("resize", () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            /* câmera */
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            /* renderer */
+            renderer.setSize(width, height);
+
+            /*
+              mobile:
+              limita pixelRatio para não destruir performance
+              desktop:
+              mantém boa qualidade
+            */
+            const isMobile = width < 768;
+
+            renderer.setPixelRatio(
+                isMobile
+                    ? 1
+                    : Math.min(window.devicePixelRatio, 2)
+            );
+
+            /*
+              importante para alguns celulares:
+              força atualização correta após teclado virtual abrir
+            */
+            renderer.render(scene, camera);
+        });
+
+        /* =========================================================
+          popup
+          =========================================================
+    
+        */
+        const footerPopup = document.getElementById("footerPopup");
+        const understoodButton = document.getElementById("understoodButton");
+        const reopenPopupButton = document.getElementById("reopenPopupButton");
+        const helpButton = document.getElementById("helpButton");
+
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                footerPopup.classList.add("show");
+            }, 5000);
+        });
+
+        understoodButton.addEventListener("click", () => {
+            footerPopup.classList.remove("show");
+            footerPopup.classList.add("hide");
+
+            setTimeout(() => {
+                reopenPopupButton.style.display = "block";
+            }, 500);
+        });
+
+        reopenPopupButton.addEventListener("click", () => {
+            footerPopup.classList.remove("hide");
+            footerPopup.classList.add("show");
+
+            reopenPopupButton.style.display = "none";
+        });
+
+        helpButton.addEventListener("click", () => {
+            window.open("https://wa.me/5511997830900", "_blank");
+        });
+        /* =========================================================
+          Tela de carregando
+          =========================================================
+    
+        */
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById("loadingScreen");
+
+            loadingScreen.classList.add("hidden");
+
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 900);
+        }
+
+
+        window.addEventListener("load", () => {
+            setTimeout(hideLoadingScreen, 1200);
+        });
+
+        /* =========================================================
+        9. LOOP DE ANIMAÇÃO
+        =========================================================
+        
+        Esse loop roda a cada frame.
+        Mesmo que quase tudo esteja parado, ele permite futuras animações:
+        - objetos piscando
+        - seleção de blocos
+        - hover
+        - transições
+        - multiplayer em tempo real
+        */
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>
