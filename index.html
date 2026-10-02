@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Portfólio de Marcelo Halker, desenvolvedor criativo focado em experiências visuais, sites 3D e interfaces interativas.">
+
+    <title>Marcelo Halker | Portfólio 3D</title>
+
+    <link rel="icon" type="image/png" href="./assets/img/logos/logo-biblioteca.png">
+    <link rel="stylesheet" href="./styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Contêiner para o modelo 3D -->
+    <div class="model"></div>
+
+    <!-- Seção Hero (Introdução) -->
+    <section class="hero">
+        <h1>Portfólio</h1> <!-- Título principal -->
+        <h2>Marcelo Halker</h2> <!-- Subtítulo -->
+        <p>
+            Sou movido pela criatividade e sempre encontro soluções
+            inovadoras para desafios visuais. Sei trabalhar sob pressão,
+            mas acredito que a qualidade deve guiar a velocidade!
+        </p> <!-- Parágrafo de descrição -->
+    </section>
+
+    <!-- Seção Info (Vazia por enquanto) -->
+    <section class="info">
+        <!-- Esta seção pode ser preenchida com informações adicionais -->
+    </section>
+
+    <!-- Seção Scanner -->
+    <section class="scanner">
+        <!-- Informações do produto -->
+        <div class="scan-info">
+            <div class="product-id">
+                <h2>V 3.1.1</h2>
+            </div> <!-- ID do produto -->
+            <div class="product-description">
+                <p>www.mahal.pro</p> <!-- Descrição do produto -->
+            </div>
+        </div>
+
+        <!-- Contêiner do scanner -->
+        <div class="scan-container"></div>
+
+        <!-- Perfil do usuário -->
+        <div class="perfil portfolio-card">
+            <div class="card-glow"></div>
+
+            <div class="card-header">
+                <img class="perfil-foto" src="./assets/fotoperfil.png" alt="Foto de Marcelo Halker">
+
+                <div>
+                    <span class="perfil-tag">Portfólio Criativo</span>
+                    <h3>Marcelo Halker</h3>
+                    <p>Artista • 28 Anos • São Paulo - SP </p>
+                </div>
+            </div>
+
+            <div class="card-social">
+                <a href="https://wa.me/5511997830900" target="_blank" class="whatsapp"><i
+                        class="fa-brands fa-whatsapp"></i></a>
+                <a href="https://www.instagram.com/um_seguidor_um_ponto/" target="_blank"><i
+                        class="fa-brands fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@mahal.exe" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="https://github.com/SrMahal" target="_blank"><i class="fa-brands fa-github"></i></a>
+                <a href="https://www.youtube.com/@MAAAHAAAL" target="_blank"><i class="fa-brands fa-youtube"></i></a>
+                <a href="https://www.artstation.com/marcelohalker" target="_blank"><i
+                        class="fa-brands fa-artstation"></i></a>
+            </div>
+            <div class="portfolio-actions">
+
+                <a href="/board.html" class="portfolio-banner">
+                    <img src="./assets/plan.png" alt="">
+                    <div class="banner-overlay">
+                        <h2>Sobre mim</h2>
+                        <span>+ Portfólio</span>
+                    </div>
+                </a>
+
+                <a href="https://3eb.site" class="portfolio-banner">
+                    <img src="./assets/plan.png" alt="">
+                    <div class="banner-overlay">
+                        <h2>Threeebs! :3</h2>
+                        <span>Plataforma</span>
+                    </div>
+                </a>
+
+                <a href="https://biblioteca.mahal.pro/" class="portfolio-banner">
+                    <img src="./assets/plan.png" alt="">
+                    <div class="banner-overlay">
+                        <h2>Biblioteca Mahal</h2>
+                        <span>Projeto</span>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+
+        <!-- Código de barras -->
+        <div class="barcode">
+            <img src="/assets/IMG.png" alt="Código de barras"> <!-- Imagem do código de barras -->
+        </div>
+
+        <!-- Mensagem de compra -->
+        <div class="purchased">
+            <p>Open Freellas!</p>
+        </div>
+    </section>
+
+    <section class="outro">
+        <h2>
+            :)
+        </h2> <!-- Mensagem final -->
+    </section>
+
+
+    <!-- Scripts externos -->
+    <script src="https://unpkg.com/lenis@1.1.16/dist/lenis.min.js"></script>
+    <!-- Biblioteca Lenis para rolagem suave -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Biblioteca Three.js para renderização 3D -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Loader GLTF para carregar modelos 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <!-- Biblioteca GSAP para animações -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- Plugin ScrollTrigger do GSAP -->
+    <script src="./script.js"></script> <!-- Arquivo JavaScript personalizado -->
+</body>
+
+</html>
